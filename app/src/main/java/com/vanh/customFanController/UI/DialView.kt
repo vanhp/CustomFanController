@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import androidx.core.content.withStyledAttributes
 import com.vanh.customFanController.R
 import kotlin.math.cos
 import kotlin.math.min
@@ -13,7 +14,15 @@ private enum class FanSpeed(val label:Int){
     OFF(R.string.fan_off),
     LOW(R.string.fan_low),
     MEDIUM(R.string.fan_medium),
-    HIGH(R.string.fan_high)
+    HIGH(R.string.fan_high);
+
+    fun next() = when(this){
+        OFF -> LOW
+        LOW -> MEDIUM
+        MEDIUM -> HIGH
+        HIGH -> OFF
+    }
+
 }
 private const val RADIUS_OFFSET_LABEL = 30
 private const val RADIUS_OFFSET_INDICATOR = -35
@@ -25,7 +34,18 @@ class DialView @JvmOverloads constructor(context:Context, attrs: AttributeSet? =
     private var fanSpeed = FanSpeed.OFF
     private var pointPosition = PointF( 0.0f, 0.0f)
 
+    private var fanSpeedLowColor = 0
+    private var fanSpeedMediumColor = 0
+    private var fanSpeedHighColor = 0
+init {
+    isClickable = true
+    context.withStyledAttributes(attrs,R.styleable.DialView){
+        fanSpeedLowColor = getColor(R.styleable.DialView_fanColor1,0)
+        fanSpeedMediumColor = getColor(R.styleable.DialView_fanColor2,0)
+        fanSpeedHighColor = getColor(R.styleable.DialView_fanColor3,0)
+    }
 
+}
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
@@ -47,11 +67,28 @@ class DialView @JvmOverloads constructor(context:Context, attrs: AttributeSet? =
         y = (radius * sin(angle)).toFloat() + height /2
 
     }
+    // override this for custom view instead of onClick
+    // leave the onclick for some tweaking or let user handle them
+    override fun performClick(): Boolean {
+        //must happen first, which enables accessibility events as well as calls onClickListener().
+        if (super.performClick()) return true
+
+        fanSpeed = fanSpeed.next()
+        contentDescription = resources.getString(fanSpeed.label)
+        invalidate()
+        return true
+    }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        paint.color = if(fanSpeed == FanSpeed.OFF) Color.GRAY else Color.GREEN
+        paint.color = when(fanSpeed){
+            FanSpeed.OFF -> Color.GRAY
+            FanSpeed.LOW -> fanSpeedLowColor
+            FanSpeed.MEDIUM -> fanSpeedMediumColor
+            FanSpeed.HIGH -> fanSpeedHighColor
+        } as Int
+       // paint.color = if(fanSpeed == FanSpeed.OFF) Color.GRAY else Color.GREEN
         // draw dial width,height are the View properties
         canvas.drawCircle((width/2).toFloat(),(height/2).toFloat(),radius,paint)
 

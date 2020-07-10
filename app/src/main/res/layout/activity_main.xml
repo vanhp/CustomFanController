@@ -31,6 +31,10 @@
            app:layout_constraintRight_toRightOf="parent"
            android:layout_marginLeft="@dimen/default_margin"
            android:layout_marginRight="@dimen/default_margin"
-           android:layout_marginTop="@dimen/default_margin"/>
-
+           android:layout_marginTop="@dimen/default_margin"
+            app:fanColor1="#FFEB3B"
+            app:fanColor2="#CDDC39"
+            app:fanColor3="#009688"
+        />
+<!--custom attributes belong to the schemas.android.com/apk/res/your_app_package_name namespace-->
 </androidx.constraintlayout.widget.ConstraintLayout>
